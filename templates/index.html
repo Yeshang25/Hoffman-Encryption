@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure File Encryption</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #6c5ce7;
+            --secondary-color: #a8a4e6;
+            --success-color: #00b894;
+            --error-color: #d63031;
+            --background-color: #f0f3f8;
+            --card-background: #ffffff;
+            --text-color: #2d3436;
+            --accent-color: #fd79a8;
+            --border-radius: 12px;
+            --shadow: 0 8px 30px rgba(108, 92, 231, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 2rem;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #f0f3f8 0%, #e9ecef 100%);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 4rem;
+            padding: 2rem;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .header p {
+            color: var(--text-color);
+            font-size: 1.2rem;
+            opacity: 0.8;
+        }
+
+        .cards-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 3rem;
+            margin-top: 2rem;
+            padding: 1rem;
+        }
+
+        .card {
+            background: var(--card-background);
+            border-radius: var(--border-radius);
+            padding: 2.5rem;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+            border: 1px solid rgba(108, 92, 231, 0.1);
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(108, 92, 231, 0.2);
+        }
+
+        .card h2 {
+            color: var(--primary-color);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            font-size: 1.8rem;
+        }
+
+        .upload-area {
+            border: 2px dashed var(--secondary-color);
+            border-radius: var(--border-radius);
+            padding: 2.5rem;
+            text-align: center;
+            margin: 1.5rem 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(108, 92, 231, 0.03);
+        }
+
+        .upload-area:hover {
+            border-color: var(--primary-color);
+            background: rgba(108, 92, 231, 0.05);
+        }
+
+        .upload-area.dragover {
+            border-color: var(--success-color);
+            background: rgba(0, 184, 148, 0.05);
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            color: var(--primary-color);
+            margin-bottom: 1.5rem;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--accent-color) 100%);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: 1.1rem;
+            width: 100%;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(108, 92, 231, 0.3);
+        }
+
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .file-info {
+            margin-top: 1.5rem;
+            padding: 1.5rem;
+            background-color: rgba(108, 92, 231, 0.05);
+            border-radius: var(--border-radius);
+            display: none;
+            border: 1px solid rgba(108, 92, 231, 0.1);
+        }
+
+        .file-info.show {
+            display: block;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background-color: #eee;
+            border-radius: 5px;
+            margin-top: 1.5rem;
+            overflow: hidden;
+            display: none;
+        }
+
+        .progress-bar .progress {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--accent-color) 100%);
+            transition: width 0.3s ease;
+        }
+
+        .status {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            display: none;
+            font-weight: 500;
+        }
+
+        .status.success {
+            background-color: rgba(0, 184, 148, 0.1);
+            color: var(--success-color);
+            display: block;
+        }
+
+        .status.error {
+            background-color: rgba(214, 48, 49, 0.1);
+            color: var(--error-color);
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+
+            .cards-container {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 2.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Secure File Encryption</h1>
+            <p>Protect your text files with advanced Huffman encryption algorithm</p>
+        </div>
+
+        <div class="cards-container">
+            <!-- Encryption Card -->
+            <div class="card">
+                <h2>
+                    <i class="fas fa-lock"></i>
+                    Encrypt File
+                </h2>
+                <form id="compressForm" action="/compress" method="post" enctype="multipart/form-data">
+                    <div class="upload-area" id="compressUploadArea">
+                        <i class="fas fa-shield-alt upload-icon"></i>
+                        <p>Drag & drop your text file here or click to browse</p>
+                        <small>Supports .txt files up to 16MB</small>
+                        <input type="file" id="compressFile" name="file" class="file-input" accept=".txt">
+                    </div>
+                    <div class="file-info" id="compressFileInfo">
+                        <p><strong>Selected file:</strong> <span id="compressFileName"></span></p>
+                        <p><strong>Size:</strong> <span id="compressFileSize"></span></p>
+                    </div>
+                    <div class="progress-bar" id="compressProgress">
+                        <div class="progress"></div>
+                    </div>
+                    <button type="submit" class="btn" id="compressBtn" disabled>
+                        Encrypt File
+                    </button>
+                    <div class="status" id="compressStatus"></div>
+                </form>
+            </div>
+
+            <!-- Decryption Card -->
+            <div class="card">
+                <h2>
+                    <i class="fas fa-unlock"></i>
+                    Decrypt File
+                </h2>
+                <form id="decompressForm" action="/decompress" method="post" enctype="multipart/form-data">
+                    <div class="upload-area" id="decompressUploadArea">
+                        <i class="fas fa-shield-alt upload-icon"></i>
+                        <p>Drag & drop your encrypted file here or click to browse</p>
+                        <small>Supports .bin files</small>
+                        <input type="file" id="decompressFile" name="file" class="file-input" accept=".bin">
+                    </div>
+                    <div class="file-info" id="decompressFileInfo">
+                        <p><strong>Selected file:</strong> <span id="decompressFileName"></span></p>
+                        <p><strong>Size:</strong> <span id="decompressFileSize"></span></p>
+                    </div>
+                    <div class="progress-bar" id="decompressProgress">
+                        <div class="progress"></div>
+                    </div>
+                    <button type="submit" class="btn" id="decompressBtn" disabled>
+                        Decrypt File
+                    </button>
+                    <div class="status" id="decompressStatus"></div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function initializeUpload(formId, fileId, uploadAreaId, fileInfoId, fileNameId, fileSizeId, btnId, statusId, progressId) {
+            const form = document.getElementById(formId);
+            const fileInput = document.getElementById(fileId);
+            const uploadArea = document.getElementById(uploadAreaId);
+            const fileInfo = document.getElementById(fileInfoId);
+            const fileName = document.getElementById(fileNameId);
+            const fileSize = document.getElementById(fileSizeId);
+            const submitBtn = document.getElementById(btnId);
+            const status = document.getElementById(statusId);
+            const progressBar = document.getElementById(progressId);
+
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.classList.add('dragover');
+            });
+
+            uploadArea.addEventListener('dragleave', () => {
+                uploadArea.classList.remove('dragover');
+            });
+
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.classList.remove('dragover');
+                fileInput.files = e.dataTransfer.files;
+                handleFileSelect();
+            });
+
+            uploadArea.addEventListener('click', () => {
+                fileInput.click();
+            });
+
+            fileInput.addEventListener('change', handleFileSelect);
+
+            function handleFileSelect() {
+                const file = fileInput.files[0];
+                if (file) {
+                    fileName.textContent = file.name;
+                    fileSize.textContent = formatFileSize(file.size);
+                    fileInfo.classList.add('show');
+                    submitBtn.disabled = false;
+                    status.className = 'status';
+                    status.textContent = '';
+                }
+            }
+
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const formData = new FormData(form);
+
+                try {
+                    progressBar.style.display = 'block';
+                    submitBtn.disabled = true;
+
+                    const response = await fetch(form.action, {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    if (response.ok) {
+                        const blob = await response.blob();
+                        const url = window.URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = fileId === 'compressFile' ? 'encrypted.bin' : 'decrypted.txt';
+                        document.body.appendChild(a);
+                        a.click();
+                        window.URL.revokeObjectURL(url);
+                        document.body.removeChild(a);
+
+                        status.className = 'status success';
+                        status.textContent = `File ${fileId === 'compressFile' ? 'encrypted' : 'decrypted'} successfully!`;
+                    } else {
+                        throw new Error(await response.text());
+                    }
+                } catch (error) {
+                    status.className = 'status error';
+                    status.textContent = `Error: ${error.message}`;
+                } finally {
+                    submitBtn.disabled = false;
+                    progressBar.style.display = 'none';
+                }
+            });
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        initializeUpload(
+            'compressForm', 'compressFile', 'compressUploadArea', 
+            'compressFileInfo', 'compressFileName', 'compressFileSize', 
+            'compressBtn', 'compressStatus', 'compressProgress'
+        );
+        initializeUpload(
+            'decompressForm', 'decompressFile', 'decompressUploadArea', 
+            'decompressFileInfo', 'decompressFileName', 'decompressFileSize', 
+            'decompressBtn', 'decompressStatus', 'decompressProgress'
+        );
+    </script>
+</body>
+</html>
